@@ -54,47 +54,84 @@
             </tbody>
         </table>
 
-        <div style="display: flex; gap: 15px; margin-top: 20px;">
+        <div style="display: flex; gap: 15px; margin-top: 20px;" id="acoes-carrinho">
             <a href="/" class="botao-acao">Continuar Comprando</a>
+            <button onclick="finalizarCompra()" class="botao-acao" style="background-color: #4caf50; color: white;">Finalizar Compra</button>
             <button onclick="limparCarrinho()" class="botao-acao" style="background-color: #ff9999;">Limpar Carrinho</button>
         </div>
 
     </div>
 
     <script>
-        // Essa função roda sozinha assim que a página abre
-        window.onload = function() {
-            // 1. Pega os produtos que foram salvos lá na página inicial
+        function atualizarCarrinho() {
             let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
             let tabela = document.getElementById('lista-produtos-carrinho');
+            let acoes = document.getElementById('acoes-carrinho');
 
-            // Se não tiver nada comprado, avisa na tabela
             if (carrinho.length === 0) {
                 tabela.innerHTML = "<tr><td colspan='3' style='text-align: center; padding: 15px;'>Seu carrinho está vazio!</td></tr>";
+                if (acoes) acoes.style.display = 'none';
                 return;
             }
 
-            // Limpa a tabela antes de desenhar
+            if (acoes) acoes.style.display = 'flex';
             tabela.innerHTML = "";
 
-            // 2. Passa item por item e joga dentro da tabela HTML
             carrinho.forEach(item => {
                 let totalItem = item.qtd * item.valor;
-                
                 let linha = `<tr>
                     <td style="padding: 10px;">${item.nome}</td>
                     <td style="padding: 10px; text-align: center;">${item.qtd}</td>
                     <td style="padding: 10px; text-align: center;">R$ ${totalItem.toFixed(2)}</td>
                 </tr>`;
-                
                 tabela.innerHTML += linha;
             });
         }
 
-        // Função simples para esvaziar o carrinho se o cliente quiser
+        window.onload = function() {
+            atualizarCarrinho();
+        }
+
         function limparCarrinho() {
+            const carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+            const estoque = JSON.parse(localStorage.getItem('estoqueMercado')) || {};
+
+            carrinho.forEach(item => {
+                if (estoque[item.nome] !== undefined) {
+                    estoque[item.nome] += item.qtd;
+                }
+            });
+
+            localStorage.setItem('estoqueMercado', JSON.stringify(estoque));
             localStorage.removeItem('carrinho');
-            window.location.reload(); // Recarrega a página para atualizar a tela
+            atualizarCarrinho();
+            window.location.href = '/';
+        }
+
+        function finalizarCompra() {
+            let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+
+            if (carrinho.length === 0) {
+                alert('Seu carrinho está vazio!');
+                return;
+            }
+
+            const historico = JSON.parse(localStorage.getItem('vendasMercado')) || [];
+            const vendasHoje = carrinho.map(item => ({
+                nome: item.nome,
+                qtd: item.qtd,
+                valor: item.valor,
+                data: new Date().toISOString()
+            }));
+
+            historico.push(...vendasHoje);
+            localStorage.setItem('vendasMercado', JSON.stringify(historico));
+            window.dispatchEvent(new Event('vendas-atualizadas'));
+
+            const valorTotal = carrinho.reduce((total, item) => total + (item.qtd * item.valor), 0);
+            localStorage.removeItem('carrinho');
+            atualizarCarrinho();
+            alert(`Compra finalizada com sucesso! Valor total: R$ ${valorTotal.toFixed(2)}`);
         }
     </script>
 

@@ -12,6 +12,72 @@
         input { width: 95%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
         button { width: 100%; padding: 10px; background-color: #940000d3; color: white; border: none; font-size: 16px; cursor: pointer; font-weight: bold; }
         .painel-resultados { margin-top: 20px; background: #e2f0d9; padding: 15px; border: 1px solid #385723; border-radius: 4px; }
+        .grafico-vendas {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .grupo-periodo {
+            border: 1px solid #d7dce5;
+            border-radius: 8px;
+            padding: 12px;
+            background: #fff;
+        }
+        .nome-periodo {
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #333;
+            text-transform: uppercase;
+        }
+        .colunas-periodo {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 12px;
+            min-height: 200px;
+            padding-top: 10px;
+            height: 200px;
+        }
+        .coluna {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            width: 100%;
+            min-width: 70px;
+            max-width: 120px;
+            gap: 6px;
+            flex: 1 1 0;
+            height: 100%;
+        }
+        .barra {
+            width: 52px;
+            min-width: 40px;
+            max-width: 100%;
+            min-height: 12px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding-top: 6px;
+            box-sizing: border-box;
+            transition: height 0.3s ease;
+        }
+        .rotulo-coluna {
+            font-size: 12px;
+            font-weight: bold;
+            color: #444;
+            text-align: center;
+        }
+        .valor-coluna {
+            font-size: 12px;
+            color: #333;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -51,15 +117,15 @@
         <h3>Valores de Custo Unitário</h3>
         <div class="grupo">
             <label>Custo da Dúzia de Ovos (R$):</label>
-            <input type="number" name="digovo" required step="0.01">
+            <input type="number" name="digovo" step="0.01" value="0">
         </div>
         <div class="grupo">
             <label>Custo do Litro de Leite (R$):</label>
-            <input type="number" name="digoleite" required step="0.01">
+            <input type="number" name="digoleite" step="0.01" value="0">
         </div>
         <div class="grupo">
             <label>Custo do Quilo de Queijo (R$):</label>
-            <input type="number" name="digoqueijo" required step="0.01">
+            <input type="number" name="digoqueijo" step="0.01" value="0">
         </div>
 
         <button type="submit">Calcular e Atualizar Loja</button>
@@ -73,10 +139,162 @@
         <hr>
         <p><strong>Custo Geral do Estoque:</strong> R$ {{ custo_total }}</p>
     </div>
+
+    <div class="painel-resultados" style="margin-top: 20px; background: #f3f7ff; border-color: #5979b3;">
+        <h3>Registro de Vendas</h3>
+        <div id="grafico-vendas-admin" class="grafico-vendas">
+            <div style="text-align: center; color: #555;">Carregando gráfico...</div>
+        </div>
+    </div>
     
     <br>
     <a href="/" style="display: block; text-align: center; color: #5a5a5a;">Voltar para a Loja</a>
 </div>
+
+<script>
+    function calcularResumoVendas() {
+        const vendas = JSON.parse(localStorage.getItem('vendasMercado')) || [];
+        const agora = new Date();
+        const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+
+        const inicioSemana = new Date(hoje);
+        inicioSemana.setDate(hoje.getDate() - 6);
+        inicioSemana.setHours(0, 0, 0, 0);
+
+        const inicioMes = new Date(hoje);
+        inicioMes.setDate(hoje.getDate() - 29);
+        inicioMes.setHours(0, 0, 0, 0);
+
+        const resumo = {
+            Ovo: { dia: 0, semana: 0, mes: 0 },
+            Leite: { dia: 0, semana: 0, mes: 0 },
+            Queijo: { dia: 0, semana: 0, mes: 0 }
+        };
+
+        vendas.forEach(venda => {
+            const nome = venda.nome;
+            if (!resumo[nome]) return;
+
+            const data = new Date(venda.data);
+            const qtd = Number(venda.qtd) || 0;
+
+            if (data.toDateString() === hoje.toDateString()) {
+                resumo[nome].dia += qtd;
+            }
+
+            if (data >= inicioSemana && data <= hoje) {
+                resumo[nome].semana += qtd;
+            }
+
+            if (data >= inicioMes && data <= hoje) {
+                resumo[nome].mes += qtd;
+            }
+        });
+
+        return resumo;
+    }
+
+    function atualizarRegistroVendas() {
+        const resumo = calcularResumoVendas();
+        const container = document.getElementById('grafico-vendas-admin');
+
+        if (!container) return;
+
+        const produtos = ['Ovo', 'Leite', 'Queijo'];
+        const periodos = [
+            { nome: 'Dia', chave: 'dia' },
+            { nome: 'Semana', chave: 'semana' },
+            { nome: 'Mês', chave: 'mes' }
+        ];
+
+        const todosValores = periodos.flatMap(periodo =>
+            produtos.map(produto => resumo[produto][periodo.chave])
+        );
+        const maiorValor = Math.max(...todosValores, 1);
+
+        container.innerHTML = periodos.map(periodo => {
+            const colunas = produtos.map(produto => {
+                const valor = resumo[produto][periodo.chave];
+                const altura = Math.max((valor / maiorValor) * 100, valor > 0 ? 20 : 6);
+                const cor = {
+                    Ovo: '#d44c4c',
+                    Leite: '#4d7fe8',
+                    Queijo: '#4caf50'
+                }[produto] || '#940000d3';
+
+                return `
+                    <div class="coluna">
+                        <div class="valor-coluna">${valor}</div>
+                        <div class="barra" style="height: ${altura}%; background: linear-gradient(180deg, ${cor}, #7a7a7a);">${valor}</div>
+                        <div class="rotulo-coluna">${produto}</div>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="grupo-periodo">
+                    <div class="nome-periodo">${periodo.nome}</div>
+                    <div class="colunas-periodo">
+                        ${colunas}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function carregarEstoqueDoLocalStorage() {
+        const estoque = JSON.parse(localStorage.getItem('estoqueMercado') || '{}');
+        const campos = {
+            duziaovos: 'Ovo',
+            litrosdeleite: 'Leite',
+            kilodequeijo: 'Queijo'
+        };
+
+        Object.entries(campos).forEach(([nomeCampo, produto]) => {
+            const campo = document.querySelector(`input[name="${nomeCampo}"]`);
+            if (campo && Number.isFinite(Number(estoque[produto]))) {
+                campo.value = Number(estoque[produto]);
+            }
+        });
+    }
+
+    function salvarEstoqueNoLocalStorage() {
+        const estoque = {
+            Ovo: Number(document.querySelector('input[name="duziaovos"]').value || 0),
+            Leite: Number(document.querySelector('input[name="litrosdeleite"]').value || 0),
+            Queijo: Number(document.querySelector('input[name="kilodequeijo"]').value || 0)
+        };
+
+        localStorage.setItem('estoqueMercado', JSON.stringify(estoque));
+    }
+
+    function registrarAtualizacaoAutomatica() {
+        window.addEventListener('storage', function (event) {
+            if (event.key === 'vendasMercado') {
+                atualizarRegistroVendas();
+            }
+        });
+
+        window.addEventListener('vendas-atualizadas', function () {
+            atualizarRegistroVendas();
+        });
+
+        setInterval(function () {
+            atualizarRegistroVendas();
+        }, 1000);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        carregarEstoqueDoLocalStorage();
+        atualizarRegistroVendas();
+        registrarAtualizacaoAutomatica();
+
+        const formulario = document.querySelector('form');
+        if (formulario) {
+            formulario.addEventListener('submit', salvarEstoqueNoLocalStorage);
+        }
+    });
+</script>
 
 </body>
 </html>

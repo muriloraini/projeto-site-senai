@@ -44,41 +44,134 @@
     </style>
 
     <script>
-        function adicionarAoCarrinho(produto, quantidade, preco) {
-            // 1. Pega o carrinho atual do localStorage ou cria um array vazio se não existir
-            let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+        const estoqueInicial = {
+            Ovo: Number("{{ qtd_ovo }}"),
+            Leite: Number("{{ qtd_leite }}"),
+            Queijo: Number("{{ qtd_queijo }}")
+        };
 
-            // 2. Cria o objeto do novo produto
-            let novoItem = {
-                nome: produto,
-                qtd: quantidade,
-                valor: preco
+        function obterEstoque() {
+            const estoqueSalvo = JSON.parse(localStorage.getItem('estoqueMercado')) || {};
+            const estoque = { ...estoqueInicial, ...estoqueSalvo };
+            localStorage.setItem('estoqueMercado', JSON.stringify(estoque));
+            return estoque;
+        }
+
+        function salvarEstoque(estoque) {
+            localStorage.setItem('estoqueMercado', JSON.stringify(estoque));
+        }
+
+        function reverterEstoqueDoCarrinho() {
+            const carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+            const estoque = obterEstoque();
+
+            carrinho.forEach(item => {
+                if (estoque[item.nome] !== undefined) {
+                    estoque[item.nome] += item.qtd;
+                }
+            });
+
+            salvarEstoque(estoque);
+        }
+
+        function atualizarEstoqueNaTela() {
+            const estoque = obterEstoque();
+            const campos = {
+                Ovo: document.getElementById('qtd-ovo'),
+                Leite: document.getElementById('qtd-leite'),
+                Queijo: document.getElementById('qtd-queijo')
+            };
+            const camposResumo = {
+                Ovo: document.getElementById('qtd-ovo-resumo'),
+                Leite: document.getElementById('qtd-leite-resumo'),
+                Queijo: document.getElementById('qtd-queijo-resumo')
             };
 
-            // 3. Adiciona o produto na lista do carrinho
-            carrinho.push(novoItem);
+            Object.entries(campos).forEach(([produto, campo]) => {
+                if (campo) campo.innerText = estoque[produto];
+            });
 
-            // 4. Salva de volta no navegador
+            Object.entries(camposResumo).forEach(([produto, campo]) => {
+                if (campo) campo.innerText = `${estoque[produto]} unidades`;
+            });
+        }
+
+        function adicionarAoCarrinho(produto, quantidade, preco) {
+            const carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+            const estoque = obterEstoque();
+            const estoqueAtual = estoque[produto] ?? 0;
+
+            if (estoqueAtual < quantidade) {
+                alert('Quantidade indisponível no estoque!');
+                return;
+            }
+
+            const itemExistente = carrinho.find(item => item.nome === produto);
+
+            if (itemExistente) {
+                itemExistente.qtd += quantidade;
+                itemExistente.valor = preco;
+            } else {
+                carrinho.push({
+                    nome: produto,
+                    qtd: quantidade,
+                    valor: preco
+                });
+            }
+
+            estoque[produto] = estoqueAtual - quantidade;
             localStorage.setItem('carrinho', JSON.stringify(carrinho));
+            salvarEstoque(estoque);
+            atualizarEstoqueNaTela();
 
-            // 5. Configura e mostra a janelinha pop-up simples na tela
             document.getElementById('modal-nome').innerText = produto;
-            document.getElementById('modal-qtd').innerText = quantity;
+            document.getElementById('modal-qtd').innerText = quantidade;
             document.getElementById('modal-preco').innerText = (quantidade * preco).toFixed(2);
             document.getElementById('meuModal').style.display = 'flex';
         }
 
-        // Função simples para fechar a janelinha
+        window.onload = function() {
+            atualizarEstoqueNaTela();
+        };
+
         function fecharModal() {
             document.getElementById('meuModal').style.display = 'none';
+        }
+
+        function abrirPainelAdmin() {
+            document.getElementById('modal-admin').style.display = 'flex';
+            document.getElementById('senha-admin').value = '';
+            document.getElementById('senha-admin').focus();
+        }
+
+        function fecharModalAdmin() {
+            document.getElementById('modal-admin').style.display = 'none';
+        }
+
+        function confirmarSenhaAdmin() {
+            const senha = document.getElementById('senha-admin').value;
+
+            if (senha === '1234') {
+                window.location.href = '/admin';
+                return;
+            }
+
+            alert('Senha incorreta!');
+            document.getElementById('senha-admin').value = '';
+            document.getElementById('senha-admin').focus();
         }
     </script>
 </head>
 <body>
 
-    <header style="display: flex; align-items: center; gap: 15px;">
-        <img src="assets/logo.png" alt="Meu carro" width="75" height="auto" />
-        <h1 style="margin: 0;">Mercado da Família</h1>
+    <header style="display: flex; align-items: center; gap: 15px; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="assets/logo.png" alt="Meu carro" width="75" height="auto" />
+            <h1 style="margin: 0;">Mercado da Família</h1>
+        </div>
+        <button type="button" onclick="abrirPainelAdmin()" style="background-color: #fff; color: #940000d3; padding: 8px 15px; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;">
+            Painel Admin
+        </button>
     </header>
     
     <hr>
@@ -101,17 +194,17 @@
             <tbody>
                 <tr>
                     <td>Duzia de ovos</td>
-                    <td>{{ qtd_ovo }} unidades</td>
+                    <td id="qtd-ovo-resumo">{{ qtd_ovo }} unidades</td>
                     <td>{{ "%.2f"|format(preco_ovo) }}</td>
                 </tr>
                 <tr>
                     <td>Leite</td>
-                    <td>{{ qtd_leite }} unidades</td>
+                    <td id="qtd-leite-resumo">{{ qtd_leite }} unidades</td>
                     <td>{{ "%.2f"|format(preco_leite) }}</td>
                 </tr>
                 <tr>
                     <td>Queijo</td>
-                    <td>{{ qtd_queijo }} unidades</td>
+                    <td id="qtd-queijo-resumo">{{ qtd_queijo }} unidades</td>
                     <td>{{ "%.2f"|format(preco_queijo) }}</td>
                 </tr>
             </tbody>
@@ -131,33 +224,33 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>{{ qtd_ovo }}</td>
+                    <td id="qtd-ovo">{{ qtd_ovo }}</td>
                     <td>
                         <img src="assets/ovo.avif" width="100" height="auto" alt="Ovos">
                     </td>
                     <td>{{ "%.2f"|format(preco_ovo) }}</td>
                     <td>
-                        <button onclick="adicionarAoCarrinho('Ovo', 1, { preco_ovo })">comprar</button>
+                        <button onclick="adicionarAoCarrinho('Ovo', 1, {{ preco_ovo }})">comprar</button>
                     </td>
                 </tr>
                 <tr>
-                    <td>{{ qtd_leite }}</td>
+                    <td id="qtd-leite">{{ qtd_leite }}</td>
                     <td>
                         <img src="assets/leite.jpg" width="100" height="auto" alt="Leite">
                     </td>
                     <td>{{ "%.2f"|format(preco_leite) }}</td>
                     <td>
-                        <button onclick="adicionarAoCarrinho('Leite', 1, { preco_leite })">comprar</button>
+                        <button onclick="adicionarAoCarrinho('Leite', 1, {{ preco_leite }})">comprar</button>
                     </td>
                 </tr>
                 <tr>
-                    <td>{{ qtd_queijo }}</td>
+                    <td id="qtd-queijo">{{ qtd_queijo }}</td>
                     <td>
                         <img src="assets/queijo.webp" width="100" height="auto" alt="Queijo">
                     </td>
                     <td>{{ "%.2f"|format(preco_queijo) }}</td>
                     <td>
-                        <button onclick="adicionarAoCarrinho('Queijo', 1, { preco_queijo })">comprar</button>
+                        <button onclick="adicionarAoCarrinho('Queijo', 1, {{ preco_queijo }})">comprar</button>
                     </td>
                 </tr>
             </tbody>
@@ -179,10 +272,27 @@
         </div>
     </div>
 
-    <footer>
-        <h4 style="margin: 0; display: inline-block;">E-mail:</h4> 
-        <a href="mailto:Mercado@example.com" style="color: white; margin-left: 5px;">Mercado@example.com</a>
+    <footer style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div>
+            <h4 style="margin: 0; display: inline-block;">E-mail:</h4> 
+            <a href="mailto:Mercado@example.com" style="color: white; margin-left: 5px;">Mercado@example.com</a>
+        </div>
+        <button type="button" onclick="abrirPainelAdmin()" style="background-color: #fff; color: #940000d3; padding: 8px 15px; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;">
+            Painel Admin
+        </button>
     </footer>
+
+    <div id="modal-admin" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
+        <div style="background-color: white; padding: 25px; border-radius: 8px; width: 320px; text-align: center; border: 2px solid #940000d3;">
+            <h3 style="color: #940000d3; margin-top: 0;">Acesso do Administrador</h3>
+            <label for="senha-admin" style="display: block; margin-bottom: 10px; font-weight: bold; text-align: left;">Senha:</label>
+            <input id="senha-admin" type="password" placeholder="Digite a senha" style="width: 100%; padding: 10px; box-sizing: border-box; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;" />
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" onclick="fecharModalAdmin()" style="background-color: #bbbbbb; color: black; padding: 8px 15px; border: none; cursor: pointer;">Cancelar</button>
+                <button type="button" onclick="confirmarSenhaAdmin()" style="background-color: #940000d3; color: white; padding: 8px 15px; border: none; cursor: pointer;">Entrar</button>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
