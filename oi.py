@@ -3,4 +3,5 @@ litrosdeleite = float(input("Digite a quantidade de litros de leite: "))
 kilodequeijo = float(input("Digite a quantidade de quilos de queijo: "))
 
 valorovo= float(input("Digite o valor da duzia de ovos: "))
-valorleite=float(input("Digite o valor do litro de leite"))
+valorleite=float(input("Digite o valor do litro de leite: "))
+valorqueijo=float(input("Digite o valor do kilo de queijo: "))
