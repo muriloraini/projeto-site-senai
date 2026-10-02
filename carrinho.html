@@ -116,17 +116,36 @@
                 return;
             }
 
+            const mapaNomes = {
+                'duzia de ovos': 'Ovo',
+                'duzia de ovo': 'Ovo',
+                'ovo': 'Ovo',
+                'leite': 'Leite',
+                'queijo': 'Queijo'
+            };
+
             const historico = JSON.parse(localStorage.getItem('vendasMercado')) || [];
-            const vendasHoje = carrinho.map(item => ({
-                nome: item.nome,
-                qtd: item.qtd,
-                valor: item.valor,
-                data: new Date().toISOString()
-            }));
+            const vendasHoje = carrinho.map(item => {
+                const nomeOriginal = String(item.nome || '').trim();
+                const nomeNormalizado = mapaNomes[nomeOriginal.toLowerCase()] || nomeOriginal;
+
+                return {
+                    nome: nomeNormalizado,
+                    qtd: item.qtd,
+                    valor: item.valor,
+                    data: new Date().toISOString()
+                };
+            });
 
             historico.push(...vendasHoje);
             localStorage.setItem('vendasMercado', JSON.stringify(historico));
+            localStorage.setItem('vendasMercado_sync', String(Date.now()));
             window.dispatchEvent(new Event('vendas-atualizadas'));
+
+            if ('BroadcastChannel' in window) {
+                const canalVendas = new BroadcastChannel('mercado_vendas');
+                canalVendas.postMessage({ tipo: 'vendas-atualizadas' });
+            }
 
             const valorTotal = carrinho.reduce((total, item) => total + (item.qtd * item.valor), 0);
             localStorage.removeItem('carrinho');
