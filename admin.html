@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel do Administrador</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #fffef4; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border: 2px solid #940000d3; border-radius: 8px; }
+        h2 { color: #940000d3; text-align: center; }
+        .grupo { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input { width: 95%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { width: 100%; padding: 10px; background-color: #940000d3; color: white; border: none; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .painel-resultados { margin-top: 20px; background: #e2f0d9; padding: 15px; border: 1px solid #385723; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Cálculo de Custos - Estoque</h2>
+    
+    <form action="/admin" method="POST">
+        <h3>Quantidades em Estoque</h3>
+        <div class="grupo">
+            <label>Dúzias de Ovos:</label>
+            <input type="number" name="duziaovos" value="{{ qtd_ovo }}" required>
+        </div>
+        <div class="grupo">
+            <label>Litros de Leite:</label>
+            <input type="number" name="litrosdeleite" value="{{ qtd_leite }}" required>
+        </div>
+        <div class="grupo">
+            <label>Quilos de Queijo:</label>
+            <input type="number" name="kilodequeijo" value="{{ qtd_queijo }}" required>
+        </div>
+
+        <h3>Valores de Venda (Preço na Loja)</h3>
+        <div class="grupo">
+            <label>Preço de Venda do Ovo (R$):</label>
+            <input type="number" name="valorovo" value="{{ preco_ovo }}" step="0.01" required>
+        </div>
+        <div class="grupo">
+            <label>Preço de Venda do Leite (R$):</label>
+            <input type="number" name="valorleite" value="{{ preco_leite }}" step="0.01" required>
+        </div>
+        <div class="grupo">
+            <label>Preço de Venda do Queijo (R$):</label>
+            <input type="number" name="valorqueijo" value="{{ preco_queijo }}" step="0.01" required>
+        </div>
+
+        <h3>Valores de Custo Unitário</h3>
+        <div class="grupo">
+            <label>Custo da Dúzia de Ovos (R$):</label>
+            <input type="number" name="digovo" required step="0.01">
+        </div>
+        <div class="grupo">
+            <label>Custo do Litro de Leite (R$):</label>
+            <input type="number" name="digoleite" required step="0.01">
+        </div>
+        <div class="grupo">
+            <label>Custo do Quilo de Queijo (R$):</label>
+            <input type="number" name="digoqueijo" required step="0.01">
+        </div>
+
+        <button type="submit">Calcular e Atualizar Loja</button>
+    </form>
+
+    <div class="painel-resultados">
+        <h3>Resultados do Cálculo:</h3>
+        <p><strong>Custo total dos ovos:</strong> R$ {{ custo_ovo }}</p>
+        <p><strong>Custo total do leite:</strong> R$ {{ custo_leite }}</p>
+        <p><strong>Custo total do queijo:</strong> R$ {{ custo_queijo }}</p>
+        <hr>
+        <p><strong>Custo Geral do Estoque:</strong> R$ {{ custo_total }}</p>
+    </div>
+    
+    <br>
+    <a href="/" style="display: block; text-align: center; color: #5a5a5a;">Voltar para a Loja</a>
+</div>
+
+</body>
+</html>

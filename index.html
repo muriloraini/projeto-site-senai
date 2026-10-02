@@ -7,8 +7,43 @@
 </head>
    
 <body>
- 
+ <script>
+    function adicionarAoCarrinho(produto, quantidade, preco) {
+        // 1. Pega o carrinho atual do localStorage ou cria um array vazio se não existir
+        let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+
+        // 2. Cria o objeto do novo produto
+        let novoItem = {
+            nome: produto,
+            qtd: quantidade,
+            valor: preco
+        };
+
+        // 3. Adiciona o produto na lista do carrinho
+        carrinho.push(novoItem);
+
+        // 4. Salva de volta no navegador
+        localStorage.setItem('carrinho', JSON.stringify(carrinho));
+
+        // 5. Configura e mostra a janelinha pop-up simples na tela
+        document.getElementById('modal-nome').innerText = produto;
+        document.getElementById('modal-qtd').innerText = quantidade;
+        document.getElementById('modal-preco').innerText = (quantidade * preco).toFixed(2);
+        document.getElementById('meuModal').style.display = 'flex';
+    }
+
+    // Função simples para fechar a janelinha
+    function fecharModal() {
+        document.getElementById('meuModal').style.display = 'none';
+    }
+ </script>
 <style>
+    header {
+        background-color: #940000d3;
+        color: #fff;
+        padding: 10px;
+        text-align: center;
+    }
     table, th, td {
         border: 2px solid rgb(138, 137, 137);
         border-collapse: collapse;
@@ -42,19 +77,15 @@
     <img src="assets/logo.png" alt="Meu carro" width="75" height="auto" />
     <h1 style="margin: 0;">Mercado da Família</h1>
     </header>
-
     <hr>
-    <br>
-    
-    <br>
-    <p>Um mercado completo perto de você. Oferecemos alimentos frescos, </p/n>
+    <p>Um mercado completo perto de você. Oferecemos alimentos frescos, </p>
     <p>produtos de qualidade e tudo o que sua casa precisa, sempre com o melhor atendimento e a conveniência que o seu dia a dia merece.</p>
     <p>Conte conosco para todas as suas necessidades de mercado!</p>
     <hr>
    
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-height: 100vh; padding: 20px; box-sizing: border-box;">
     
-    <!-- Primeira Tabela -->
+    <!-- Primeira Tabela (Agora com dados do Python) -->
     <table border="1" style="border-collapse: collapse; margin-bottom: 20px;">
         <tr>
             <th>Nome</th>
@@ -62,25 +93,25 @@
             <th>Valor de venda</th>
         </tr>
         <tr>
-            <td>OVO</td>
-            <td>16 unidades</td>
-            <td>30</td>
+            <td>Duzia de ovos</td>
+            <td>{{ qtd_ovo }} unidades</td>
+            <td>{{ "%.2f"|format(preco_ovo) }}</td>
         </tr>
         <tr>
            <td>Leite</td>
-            <td>10 unidades</td>
-            <td>20</td>
+            <td>{{ qtd_leite }} unidades</td>
+            <td>{{ "%.2f"|format(preco_leite) }}</td>
         </tr>
         <tr>
-           <td>queijo</td>
-            <td>10 unidades</td>
-            <td>40</td>
+           <td>Queijo</td>
+            <td>{{ qtd_queijo }} unidades</td>
+            <td>{{ "%.2f"|format(preco_queijo) }}</td>
         </tr>
     </table>
 
     <hr style="width: 80%; max-width: 600px; margin: 20px 0;">
 
-    <!-- Segunda Tabela -->
+    <!-- Segunda Tabela (Agora com dados do Python nos botões tbm) -->
     <table border="1" style="border-collapse: collapse;">
         <tr>
             <th>QUANTIDADE</th>
@@ -89,37 +120,51 @@
             <th>COMPRAR</th>
         </tr>
         <tr>
-            <td>10</td>
+            <td>{{ qtd_ovo }}</td>
             <td>
                 <img src="assets/ovo.avif" width="100" height="auto">
             </td>
-            <td>30,00</td>
+            <td>{{ "%.2f"|format(preco_ovo) }}</td>
             <td>
-                <button>comprar</button>
+                <button onclick="adicionarAoCarrinho('Ovo', 1, {{ preco_ovo }})">comprar</button>
             </td>
         </tr>
         <tr>
-            <td>20</td>
+            <td>{{ qtd_leite }}</td>
             <td>
                 <img src="assets/leite.jpg" width="100" height="auto">
             </td>
-            <td>20,00</td>
-            <td><button>comprar</button></td>
+            <td>{{ "%.2f"|format(preco_leite) }}</td>
+            <td><button onclick="adicionarAoCarrinho('Leite', 1, {{ preco_leite }})">comprar</button></td>
         </tr>
         <tr>
-            <td>40</td>
+            <td>{{ qtd_queijo }}</td>
             <td>
                 <img src="assets/queijo.webp" width="100" height="auto">
             </td>
-            <td>40,00</td>
-            <td><button>comprar</button></td>
+            <td>{{ "%.2f"|format(preco_queijo) }}</td>
+            <td><button onclick="adicionarAoCarrinho('Queijo', 1, {{ preco_queijo }})">comprar</button></td>
         </tr>
     </table>
 
 </div>
 
+<!-- Janela Pop-up (Modal) Simples -->
+<div id="meuModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
+    <div style="background-color: white; padding: 25px; border-radius: 8px; width: 300px; text-align: center; font-family: Arial, sans-serif; border: 2px solid #940000d3;">
+        <h3 style="color: #940000d3; margin-top: 0;">Item Adicionado!</h3>
+        <p><strong>Produto:</strong> <span id="modal-nome"></span></p>
+        <p><strong>Quantidade:</strong> <span id="modal-qtd"></span></p>
+        <p><strong>Preço total:</strong> R$ <span id="modal-preco"></span></p>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+            <button onclick="fecharModal()" style="background-color: #bbbbbb; color: black; padding: 8px 15px; border: none; cursor: pointer; transform: none;">Continuar</button>
+            <a href="/carrinho" style="background-color: #940000d3; color: white; padding: 8px 15px; text-decoration: none; font-size: 14px; font-weight: bold; border-radius: 2px;">Ver Carrinho</a>
+        </div>
+    </div>
+</div>
+
 </body>
 <footer>
-    <h4>E-mail:</h4><a href="mailto:MercadoBoam@example.com">mailto:Mercado@example.com</a>
+    <h4> --> E-mail:</h4><a href="mailto:MercadoBoam@example.com">mailto:Mercado@example.com</a>
 </footer>
 </html>
