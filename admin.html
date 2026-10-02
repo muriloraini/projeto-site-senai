@@ -152,10 +152,24 @@
 </div>
 
 <script>
+    function normalizarNomeProduto(nome) {
+        const mapa = {
+            'duzia de ovos': 'Ovo',
+            'duzia de ovo': 'Ovo',
+            'ovo': 'Ovo',
+            'leite': 'Leite',
+            'queijo': 'Queijo'
+        };
+
+        const texto = String(nome || '').trim().toLowerCase();
+        return mapa[texto] || String(nome || '').trim();
+    }
+
     function calcularResumoVendas() {
         const vendas = JSON.parse(localStorage.getItem('vendasMercado')) || [];
         const agora = new Date();
         const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+        const fimDoDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 23, 59, 59, 999);
 
         const inicioSemana = new Date(hoje);
         inicioSemana.setDate(hoje.getDate() - 6);
@@ -172,7 +186,7 @@
         };
 
         vendas.forEach(venda => {
-            const nome = venda.nome;
+            const nome = normalizarNomeProduto(venda.nome);
             if (!resumo[nome]) return;
 
             const data = new Date(venda.data);
@@ -182,11 +196,11 @@
                 resumo[nome].dia += qtd;
             }
 
-            if (data >= inicioSemana && data <= hoje) {
+            if (data >= inicioSemana && data <= fimDoDia) {
                 resumo[nome].semana += qtd;
             }
 
-            if (data >= inicioMes && data <= hoje) {
+            if (data >= inicioMes && data <= fimDoDia) {
                 resumo[nome].mes += qtd;
             }
         });
@@ -269,15 +283,23 @@
     }
 
     function registrarAtualizacaoAutomatica() {
-        window.addEventListener('storage', function (event) {
-            if (event.key === 'vendasMercado') {
+        const atualizarSeNecessario = function (event) {
+            const chave = event && event.key ? event.key : null;
+            if (!chave || chave === 'vendasMercado' || chave === 'vendasMercado_sync') {
                 atualizarRegistroVendas();
             }
-        });
+        };
 
-        window.addEventListener('vendas-atualizadas', function () {
-            atualizarRegistroVendas();
-        });
+        window.addEventListener('storage', atualizarSeNecessario);
+        window.addEventListener('vendas-atualizadas', atualizarSeNecessario);
+        window.addEventListener('focus', atualizarRegistroVendas);
+
+        if ('BroadcastChannel' in window) {
+            const canalVendas = new BroadcastChannel('mercado_vendas');
+            canalVendas.addEventListener('message', function () {
+                atualizarRegistroVendas();
+            });
+        }
 
         setInterval(function () {
             atualizarRegistroVendas();
