@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homens de família</title>
+    <title>Mercado da Família</title>
     
     <style>
         body {
@@ -100,6 +100,7 @@
             const carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
             const estoque = obterEstoque();
             const estoqueAtual = estoque[produto] ?? 0;
+            const valorUnitario = Number(preco) || 0;
 
             if (estoqueAtual < quantidade) {
                 alert('Quantidade indisponível no estoque!');
@@ -110,12 +111,12 @@
 
             if (itemExistente) {
                 itemExistente.qtd += quantidade;
-                itemExistente.valor = preco;
+                itemExistente.valor = valorUnitario;
             } else {
                 carrinho.push({
                     nome: produto,
                     qtd: quantidade,
-                    valor: preco
+                    valor: valorUnitario
                 });
             }
 
@@ -126,7 +127,7 @@
 
             document.getElementById('modal-nome').innerText = produto;
             document.getElementById('modal-qtd').innerText = quantidade;
-            document.getElementById('modal-preco').innerText = (quantidade * preco).toFixed(2);
+            document.getElementById('modal-preco').innerText = (quantidade * valorUnitario).toFixed(2);
             document.getElementById('meuModal').style.display = 'flex';
         }
 
@@ -230,7 +231,7 @@
                     </td>
                     <td>{{ "%.2f"|format(preco_ovo) }}</td>
                     <td>
-                        <button onclick="adicionarAoCarrinho('Ovo', 1, { preco_ovo })">comprar</button>
+                        <button onclick="adicionarAoCarrinho('Ovo', 1, {{ preco_ovo }})">comprar</button>
                     </td>
                 </tr>
                 <tr>
@@ -240,7 +241,7 @@
                     </td>
                     <td>{{ "%.2f"|format(preco_leite) }}</td>
                     <td>
-                        <button onclick="adicionarAoCarrinho('Leite', 1, { preco_leite })">comprar</button>
+                        <button onclick="adicionarAoCarrinho('Leite', 1, {{ preco_leite }})">comprar</button>
                     </td>
                 </tr>
                 <tr>
@@ -250,7 +251,7 @@
                     </td>
                     <td>{{ "%.2f"|format(preco_queijo) }}</td>
                     <td>
-                        <button onclick="adicionarAoCarrinho('Queijo', 1, { preco_queijo })">comprar</button>
+                        <button onclick="adicionarAoCarrinho('Queijo', 1, {{ preco_queijo }})">comprar</button>
                     </td>
                 </tr>
             </tbody>
