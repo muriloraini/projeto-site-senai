@@ -86,6 +86,20 @@
     <h2>Cálculo de Custos - Estoque</h2>
     
     <form action="/admin" method="POST">
+        <h3>Produto e Códigos Internos</h3>
+        <div class="grupo">
+            <label>Código do Ovo:</label>
+            <input type="text" value="{{ codigo_ovo }}" readonly>
+        </div>
+        <div class="grupo">
+            <label>Código do Leite:</label>
+            <input type="text" value="{{ codigo_leite }}" readonly>
+        </div>
+        <div class="grupo">
+            <label>Código do Queijo:</label>
+            <input type="text" value="{{ codigo_queijo }}" readonly>
+        </div>
+
         <h3>Quantidades em Estoque</h3>
         <div class="grupo">
             <label>Dúzias de Ovos:</label>
@@ -130,6 +144,13 @@
 
         <button type="submit">Calcular e Atualizar Loja</button>
     </form>
+
+    <div class="painel-resultados">
+        <h3>Códigos dos Produtos (visível somente para o administrador)</h3>
+        <p><strong>Ovo:</strong> {{ codigo_ovo }}</p>
+        <p><strong>Leite:</strong> {{ codigo_leite }}</p>
+        <p><strong>Queijo:</strong> {{ codigo_queijo }}</p>
+    </div>
 
     <div class="painel-resultados">
         <h3>Resultados do Cálculo:</h3>

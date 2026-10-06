@@ -7,6 +7,10 @@ qtd_ovo = 16
 qtd_leite = 10
 qtd_queijo = 8
 
+codigo_ovo = "PROD-001"
+codigo_leite = "PROD-002"
+codigo_queijo = "PROD-003"
+
 preco_ovo = 5.00
 preco_leite = 4.00
 preco_queijo = 35.00
@@ -22,7 +26,8 @@ def ola():
     return render_template(
         "index.html", 
         qtd_ovo=qtd_ovo, qtd_leite=qtd_leite, qtd_queijo=qtd_queijo,
-        preco_ovo=preco_ovo, preco_leite=preco_leite, preco_queijo=preco_queijo
+        preco_ovo=preco_ovo, preco_leite=preco_leite, preco_queijo=preco_queijo,
+        codigo_ovo=codigo_ovo, codigo_leite=codigo_leite, codigo_queijo=codigo_queijo
     )
 
 @app.route("/carrinho")
@@ -64,6 +69,7 @@ def admin():
         "admin.html", 
         qtd_ovo=qtd_ovo, qtd_leite=qtd_leite, qtd_queijo=qtd_queijo,
         preco_ovo=preco_ovo, preco_leite=preco_leite, preco_queijo=preco_queijo,
+        codigo_ovo=codigo_ovo, codigo_leite=codigo_leite, codigo_queijo=codigo_queijo,
         custo_ovo=custo_ovo, custo_leite=custo_leite, 
         custo_queijo=custo_queijo, custo_total=custo_total
     )

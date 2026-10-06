@@ -6,6 +6,9 @@
     <title>Mercado da Família</title>
     
     <style>
+        .codigo-produto {
+            display: none;
+        }
         body {
             background-color: #fffef4;
             margin: 0;
@@ -201,17 +204,17 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>Duzia de ovos</td>
+                    <td>Duzia de ovos <span class="codigo-produto">{{ codigo_ovo }}</span></td>
                     <td id="qtd-ovo-resumo">{{ qtd_ovo }} unidades</td>
                     <td>{{ "%.2f"|format(preco_ovo) }}</td>
                 </tr>
                 <tr>
-                    <td>Leite</td>
+                    <td>Leite <span class="codigo-produto">{{ codigo_leite }}</span></td>
                     <td id="qtd-leite-resumo">{{ qtd_leite }} unidades</td>
                     <td>{{ "%.2f"|format(preco_leite) }}</td>
                 </tr>
                 <tr>
-                    <td>Queijo</td>
+                    <td>Queijo <span class="codigo-produto">{{ codigo_queijo }}</span></td>
                     <td id="qtd-queijo-resumo">{{ qtd_queijo }} unidades</td>
                     <td>{{ "%.2f"|format(preco_queijo) }}</td>
                 </tr>
@@ -235,6 +238,7 @@
                     <td id="qtd-ovo">{{ qtd_ovo }}</td>
                     <td>
                         <img src="assets/ovo.avif" width="100" height="auto" alt="Ovos">
+                        <span class="codigo-produto">{{ codigo_ovo }}</span>
                     </td>
                     <td>{{ "%.2f"|format(preco_ovo) }}</td>
                     <td>
@@ -245,6 +249,7 @@
                     <td id="qtd-leite">{{ qtd_leite }}</td>
                     <td>
                         <img src="assets/leite.jpg" width="100" height="auto" alt="Leite">
+                        <span class="codigo-produto">{{ codigo_leite }}</span>
                     </td>
                     <td>{{ "%.2f"|format(preco_leite) }}</td>
                     <td>
@@ -255,6 +260,7 @@
                     <td id="qtd-queijo">{{ qtd_queijo }}</td>
                     <td>
                         <img src="assets/queijo.webp" width="100" height="auto" alt="Queijo">
+                        <span class="codigo-produto">{{ codigo_queijo }}</span>
                     </td>
                     <td>{{ "%.2f"|format(preco_queijo) }}</td>
                     <td>
